@@ -1,6 +1,14 @@
 (mod (SINGLETON_STRUCT INNER_PUZZLE lineage_proof my_amount inner_solution)
 
+; lineage_proof takes one of two formats:
+;   (parent_parent_coin_info parent_inner_puzzle_hash parent_amount)-> eve spend
+;   (parent_parent_coin_info parent_amount)
+;    
+
 ;; SINGLETON_STRUCT = (MOD_HASH . (LAUNCHER_ID . LAUNCHER_PUZZLE_HASH))
+
+; MOD_HASH:The tree hash of this module
+; LAUNCHER_ID: The launcher coin id (this acts as the unique id for the singleton)
 
 ; SINGLETON_STRUCT, INNER_PUZZLE are curried in by the wallet
 
@@ -45,6 +53,8 @@
   ;; The special case where the output value is -113 means a child singleton is intentionally
   ;; *NOT* being created, thus forever ending this singleton's existence
 
+  ;一直迭代(一層一層把condition 扒開), 確保只有unique singleton child with odd valued output被create, 然後用相同的singleton puzzle 去wrap inner puzzle
+  ;看到condition -113(CREATE_COIN) 代表要melt 這個singleton了
   (defun check_and_morph_conditions_for_singleton (SINGLETON_STRUCT conditions has_odd_output_been_found)
     (if conditions
         ; check if it's an odd create coin
@@ -61,17 +71,20 @@
             )
             (c (f conditions) (check_and_morph_conditions_for_singleton SINGLETON_STRUCT (r conditions) has_odd_output_been_found))
         )
+        ;沒有condition 的時候代表應該要有 odd output,如果是0 代表還沒找到(return () ),如果是ONE 代表找到了
         (assert has_odd_output_been_found ())
     )
    )
 
  ; assert that either the lineage proof is for a parent singleton, or, if it's for the launcher, verify it matched our launcher ID
  ; then return a condition asserting it actually is our parent ID
- ; 確定他不然是parent singleton,不然parent 就是match launcher ID 的 launcher,最後return 一個condition :確實是parent ID
+ ; 確保input 的lineage proof不然是parent singleton,不然parent 就是match launcher ID 的 launcher,最後return 一個condition :"確實是parent ID"
+ ; verifies that the launcher id and launcher puzzle hash we have (both inside the SINGLETON_STRUCT) are correct.
  (defun verify_lineage_proof (SINGLETON_STRUCT parent_id is_not_launcher)
+ ; 這個assert 確保singleton 可以信任launcher id和puzzle hash. 這很重要, 因為在eve singleton被curry 進去, 檢查後後面的singleton 就放心了
     (assert (any is_not_launcher (= parent_id (launcher_id_for_singleton_struct SINGLETON_STRUCT)))
       ; then
-      (list ASSERT_MY_PARENT_ID parent_id)
+      (list ASSERT_MY_PARENT_ID parent_id);已經確保launcher id 就是parent id 了
     )
  )
 
@@ -84,6 +97,7 @@
       (list ASSERT_MY_AMOUNT my_amount)
       (c
         ; Verify the lineage proof by asserting our parent's ID
+        ; 這段的重點是怎麼產生verify_lineage_proof 的input 
         (verify_lineage_proof
           SINGLETON_STRUCT
           ; calculate our parent's ID
@@ -101,7 +115,7 @@
           (is_not_eve_proof lineage_proof)
         )
         ; finally check all of the conditions for a single odd output to wrap
-        ; (a INNER_PUZZLE inner_solution)當input(???)
+        ; a INNER_PUZZLE inner_solution當input, 可以想成直接傳入solution
         (check_and_morph_conditions_for_singleton SINGLETON_STRUCT (a INNER_PUZZLE inner_solution) 0)
       )
     )

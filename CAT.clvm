@@ -427,7 +427,7 @@
         ;; calculate cat_mod_struct, inner_puzzle_hash, coin_id
         (list MOD_HASH (sha256 ONE MOD_HASH) TAIL_PROGRAM_HASH)
         (a INNER_PUZZLE inner_puzzle_solution);(為了生成inner condition 而這樣寫)
-        lineage_proof
+        lineage_proof;這input 會根據是否為eve spend 而不同
         (sha256tree INNER_PUZZLE); 把INNER_PUZZLE hash
         (calculate_coin_id (f this_coin_info) (f (r this_coin_info)) (f (r (r this_coin_info))))
         prev_coin_id    ; ID
