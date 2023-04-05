@@ -40,7 +40,8 @@
 ; Announcements automatically commit to their own coin id.
 ; Coin I_k creates an announcement that further commits to I_{k-1} and S_{k-1}.
 
-; ???
+; 第一個coin(c1) create -10 debt 的announcements, 傳給第二個coin(c2),c2要assert announcements確保-10這個數字. 
+; 假設c2 debt 10, -10+10 = 0, 再往下一個create announcement. 一圈後第一個要assert 最後一個. 若最後是0, 則不用run TAIL.
 
 ; Coin I_k gets a proof that I_{k+1} is a cat, so it knows it must also create an announcement
 ; when spent. It checks that I_{k+1} creates an announcement committing to I_k and S_k.
@@ -278,7 +279,7 @@
 
     ; ;   下面遞迴做三件事:
     ; ;   1. 找到-113, 記下TAIL reveal 和 solution
-    ; ;   2. (???)
+    ; ;   2. 當內層的condition 出來, 要做一些處理. 
     ; ;   3. 將inner puzzle 輸出的CREATE_COIN 的output amount 相加
       (defun find_and_strip_tail_info (inner_conditions cat_mod_struct tail_reveal_and_solution)
         (if inner_conditions;如果還有inner_conditions
@@ -405,7 +406,7 @@
         prev_subtotal
         extra_delta
      )
-      (c (list ASSERT_MY_COIN_ID my_id) (stager_two;(為什麼要prepend assert list ???)
+      (c (list ASSERT_MY_COIN_ID my_id) (stager_two;prepend, 先驗證輸入, 若my_id是錯的以下就不執行
         (cat_truth_data_to_truth_struct; 整理這些data 成truth struct
           inner_puzzle_hash
           cat_mod_struct
@@ -425,7 +426,7 @@
     (stager
         ;; calculate cat_mod_struct, inner_puzzle_hash, coin_id
         (list MOD_HASH (sha256 ONE MOD_HASH) TAIL_PROGRAM_HASH)
-        (a INNER_PUZZLE inner_puzzle_solution)
+        (a INNER_PUZZLE inner_puzzle_solution);(為了生成inner condition 而這樣寫)
         lineage_proof
         (sha256tree INNER_PUZZLE); 把INNER_PUZZLE hash
         (calculate_coin_id (f this_coin_info) (f (r this_coin_info)) (f (r (r this_coin_info))))
