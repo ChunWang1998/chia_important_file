@@ -12,12 +12,10 @@
 ; Some coins may spend more than they contribute and some may spend less, ie. D_k need
 ; not be zero. That's okay. It's enough for the total of all D_k in the ring to be 0.
 
-;  一圈下來debt 要為0
+;  一圈下來debt (output - amount)要為0
 
 ; A coin can calculate its own D_k since it can verify A_k (it's hashed into the coin id)
 ; and it can sum up `CREATE_COIN` conditions for O_k.
-
-; coin 可以算得出自己的D_k, 因為算得出A_k 和O_k
 
 ; Defines a "subtotal of debts" S_k for each coin as follows:
 ;
@@ -33,8 +31,6 @@
 
 ; Each coin's solution includes I_{k-1}, I_k, and I_{k+1} along with proofs that I_{k}, and I_{k+1} are CATs of the same type.
 ; Each coin's solution includes S_{k-1}. It calculates D_k = O_k - A_k, and then S_k = S_{k-1} + D_{k-1}
-
-;
 
 ; Announcements are used to ensure that each S_k follows the pattern is valid.
 ; Announcements automatically commit to their own coin id.
