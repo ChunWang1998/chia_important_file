@@ -1,0 +1,50 @@
+TO:
+1: 獲取cat
+1.1 user 提供 GOC , 獲取 xch / cat 
+- in offer, deposit NFT, supply xch (for user) -> refer:AMM
+- in offer, deposit NFT, supply cat (limited), mint 
+1.2 user use HG-AMM, 獲取cat 
+- 略
+- 同"2"
+
+2: 使用cat 
+2.1 user 提供cat 質押, 獲取更多cat(不在圖上)
+- deposit cat to mint cat
+2.2 user 提供cat 來mint ve-HDT
+- swap cat to ve-HDT
+2.3 user 提供cat 給goc 回購(星能池/版稅差價)
+- sell cat for xch 
+
+3: 獲取HDT
+3.1 user use HG-AMM, 獲取HDT
+-略
+3.2 user 提供 xch, 買 HDT
+- buy HDT from xch
+
+4: 使用HDT
+4.1 user 提供HDT 質押, 獲取更多HDT
+- deposit HDT to mint HDT-> refer:2.1
+4.2 user 提供HDT 來mint ve-HDT
+- swap HDT to ve-HDT ->refer: 2-2
+
+5: 使用ve-HDT
+5 user 拿ve-HDT 投票
+- 等官方(其他項目) 出相關投票doc(tool)
+
+BACK:
+1.1 user 拿ve-HDT 換回cat / HDT
+- swap ve-HDT to cat or HDT
+1.2 user can sell ve-HDT for xch 
+- sell ve-HDT for xch ->技術上同"TO"2-3
+2.1 user sell HDT for xch
+- buy xch from HDT -> refer:"TO"3-2
+2.2 user use HG-AMM swap HDT to xch
+- 略 ->refer:"TO"3-1
+3.1 user can sell cat for xch
+- sell cat for xch ->技術上同"TO"2-3
+3.2 user 提供 cat , 獲取 xch 
+- in offer, deposit cat, supply xch -> refer:AMM
+
+
+TODO:
+back picture

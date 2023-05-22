@@ -1,0 +1,83 @@
+get launcher_idA asset_id_vA from FE
+create pool by launcher_idA
+in repsond_to_offer():
+    1. get launcher_idB by "offer 1 mojo coin from user to create launcher"
+    2. get asset_id_vB from launcher_idB
+    2. assert launcher_idA == launcher_idB and asset_id_vA == asset_id_vB
+    3. outgoing_payment / incoming_payment...(操作pool 資產)
+send SB (push_tx()...)
+
+puzzle hash 是0xeff 的就是launcher
+
+launcher_id 會取決於launcher puzzle hash(create launcher coin 需要SINGLETON_LAUNCHER_HASH)
+以lp 素材為例, 在offer 內提供的素材並沒有指明去向, 在做pool offer 時才說要打到哪個地址
+offer 要很簡單
+(在create pool offer時)pool offer 指定說:用戶等等傳1mojo 到launcher coin puzzle hash
+asset id v 會傳進來 但是用驗證的
+ 
+xch 會先付給offer coin, offer coin 可以spend 掉1個coin做多個create coin
+get_launcher_payments():
+    ---------------------------這邊現在拿掉了, 是舊的code------------------------
+    - _pay_to_conditions(): 這個pool 管理了一些資產, 這些資產必須要有pool singleton 的announcement才能花掉, 花掉方式就是call _pay_to_conditions()
+    - _pay_to_conditions(): 叫pool 授權他旗下的資產
+    --------------------------------------------------------------------------
+    = 用戶付xch 到OFFER_MOD_HASH(offer coin), offer 會再pay 出來(ex: lp minting 會到acs,我們在從acs 接手把cat mint 出來), 在這邊是到SINGLETON_LAUNCHER_HASH
+    - 不需要call _pay_to_conditions(), 因為pool 不用動用他的管理資產(也還沒有)
+    - SB : 把launcher 花掉(應該要是只包coinSpend 的SB), request_payment: 要付到launcher puzzle hash(確保有人有付錢到某個PH上)(對應到test code的acs_pay_to_conditions()). 拿來確保coin 有被花掉
+    - SB : refer: get_launch_spend_bundle()的“把launcher花掉” part
+    - 製作SB: 
+        - coin: 傳進來的參數
+        - puzzle: LAUNCHER_PUZZLE_HASH
+        - solution: launch_conditions_and_coinsol()(做launcher coin spend) => launcher_solution
+    - 傳入的coin就是launcher 的素材, 他的parent 是xch(offer coin)
+"input and output amounts don't match"err msg: 因為asset_id被歸類到cat
+pool 在 outgoing_payment 時就需要對pool 內的資產做操作, 所以launcher_id要在這之前給(pay to condition時需要知道pool id),
+就是在outgoing_payment pool還沒被create沒關係, 但至少要知道pool_id
+前端那邊一定會有算好的launcher_id 給進來(因為在算asset_id 時就要用到)
+
+to_valid_spend():做coinSpend支付到request 的PH
+
+Q.1 1 mojo 怎麼給進去的?
+A.1 get_launch_conditions() > _get_launch_conditions_and_coin_spend() > launch_conditions_and_coinsol()
+Q.2 要怎麼從user 那邊要 1 mojo 來 create launcher?
+A.2 reference: 參考怎麼挖用戶coin去做lp(和用戶要一些素材 去mint lp token)(用戶把需要的)
+Q.3 怎麼和用戶要一些素材 去mint lp token?
+A.3 get_outgoing_lp_payments() => _mint_melt_liquidity()
+Q.5 原本offer 內會需要pool 的有哪些?(可能要替換掉或拿掉)
+A.5
+pool.liquidity_tail_program_hash: 有launcher_id 就可以了, 參考def get_liquidity_tail_program()
+pool.driver_dict =>應該可以自己組, 參考wallet.py def driver_dict()
+    在預設的inner_puzzle_info內, asset a 是空的, 預設會給b, 在pool.create()會給asset v, 也是從有launcher_id來的
+
+notarized_payments 會傳入settlement payment 生成condition(CREATE_COIN / CREATE_PUZZLE_ANNOUNCEMENT), 交易的
+另一端看到這些announcement 後把這些當作spend coin 的條件
+
+祖譜:(coin id)
+launcher parent(0x65)->launcher(0x1c)->singleton(0xa77)
+祖譜:(coin PH)
+launcher parent(X(9dc???))->launcher(0xeff)->singleton(0x210)
+one step test:
+
+
+可能錯的地方:
+1. self._latest_coin_record (應該不是)
+2. add pool_requested_payments 
+3. solution for SB => SB ERR!!! =>latest_coin 錯了？
+4. others
+
+respond_to_offer V2 vs origin:
+- V2 透過offer 多request 1 mojo 到launcher PH
+- 在V2 才把launcher spend 掉, origin 在外面就spend 了
+- V2 的pool沒有_latest_coin_record, 因為pool才剛創,沒有前面的block 的pool data 可以sync
+
+two step:
+launcher parent: 0x9dcf9 /ID: 0x657aa
+launcher: PH:0xeff / ID: 1c6eb6
+singleton: PH:0x2102 / 0a77a7
+第二代singleton: PH:0x0145b / ID:430b3c
+
+one step:(input launcherid: 1c6eb6d)(影響singleton)
+launcher parent: e8aeb(固定)
+launcher: PH:0xeff /ID: f8b46 (都固定)
+singleton: PH:0xce6074 / ID: 1d2e5af (被input launcher id 影響)
+第二代singleton: 

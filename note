@@ -1,0 +1,47 @@
+$@：目标
+$^：所有目标依赖
+foreach / call: http://deanjai.blogspot.com/2006/03/makefilecalloriginshellforeach.html
+
+Singleton:
+(code on doc)
+* 用lineage_proof來證明parent也是singleton, 除非是第一次spend(也就是parent 是launcher) 
+* 在stage two 要先算出自已的id, 再去算parent id. 但要根據是不是eve spend 來決定怎麼產生自己的id:
+    - 如果不是eve spend, 可以根據lineage_proof 的資料算出自己的coin id, 再拿去算parent id
+    - 如果是eve spend(parent 是 launcher), 要再多一層檢查 launcher id 和 launcher puzzle hash
+* 在stage three 會把一個condition prepend 到一個會檢查singleton的list 
+* 做一些操作使inner puzzle 可以直接用singleton 處理好的訊息,省錢!(inner puzzle必須進到singleton 裏面(???))
+
+
+v1 vs cypher:
+c -> @cf.concat
+
+github conflict: 
+github desktop merge: 再vscode解conflict
+
+TODO
+- sync
+- 整理doc
+
+6:30
+這個api service 跑在container內, 有另一個service 透過cronjob 把pool 每五秒做同步. 
+共有3個service : api/cronjob/database.
+better syncing 是改cronjob,不會碰到api service
+api 的get .../state: singleton 的generation歷史
+mempool aggregate: user 和pool交易後, 把SB 送到mempool, 下次交易可以把這個SB的output singleton拿來用, 新創一個SB 和舊的頭串尾接在一起
+但每次user 想update pool 都需要做mempool 掃描,需要時間. 掃描mempool 可作performance update.
+docker-compose.yaml:定義有哪些服務 ->pyke-api: 從DB 拿data / pyke-cron: ,各自起在不同process
+DB:存有哪些pool 以及pool 的state(動態變化)
+每交易一次就會產生一個state
+migration: table v1->table v2(例如增加一個欄位)
+dockerfiles:(build 服務)
+    - dockerfile api:把服務setup 好 東西copy 進去
+    - dockerfile.cron: 不會動到
+pools.py sync_pools()(要修的重點)
+run docker compose:
+
+
+TODO
+把docker compose 跑起來, 讓local host 有實際跑服務,可以list pool,pool 是同步的(比對generation)
+
+
+
